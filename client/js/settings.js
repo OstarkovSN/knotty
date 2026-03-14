@@ -44,11 +44,12 @@ export class SettingsManager {
   }
 
   _buildPanel() {
-    // Shared tooltip element — repositioned on each hint click
+    // Shared tooltip element — lives in body with fixed positioning so it is
+    // never clipped by the panel's overflow-y:auto scroll container.
     this._tooltip = document.createElement("div");
     this._tooltip.className = "settings-tooltip";
     this._tooltip.hidden = true;
-    document.getElementById("settings-panel").appendChild(this._tooltip);
+    document.body.appendChild(this._tooltip);
 
     document.addEventListener("click", (e) => {
       if (!e.target.classList.contains("settings-hint")) {
@@ -107,10 +108,10 @@ export class SettingsManager {
         if (!already) {
           this._tooltip.textContent = schema.description;
           this._tooltip.dataset.for = schema.id;
-          // Position below the hint badge within the panel
-          const hintRect = hint.getBoundingClientRect();
-          const panelRect = document.getElementById("settings-panel").getBoundingClientRect();
-          this._tooltip.style.top = (hintRect.bottom - panelRect.top + 4) + "px";
+          // Position below the hint badge using viewport coordinates (fixed)
+          const r = hint.getBoundingClientRect();
+          this._tooltip.style.top  = (r.bottom + 6) + "px";
+          this._tooltip.style.right = (window.innerWidth - r.right - 4) + "px";
         }
       });
       label.appendChild(hint);
