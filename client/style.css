@@ -88,6 +88,12 @@ canvas {
   margin-bottom: 10px;
 }
 
+.settings-label-wrap {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .settings-row label {
   font-size: 13px;
   color: #ccc;

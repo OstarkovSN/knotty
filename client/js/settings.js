@@ -89,13 +89,18 @@ export class SettingsManager {
     const row = document.createElement("div");
     row.className = "settings-row";
 
+    // Wrap label + hint in a div so the hint is NOT inside the <label>.
+    // A hint inside <label> causes the browser to fire a synthetic click on
+    // the associated input when the hint is clicked, which immediately
+    // dismisses the tooltip via the document listener.
+    const labelWrap = document.createElement("div");
+    labelWrap.className = "settings-label-wrap";
+    row.appendChild(labelWrap);
+
     const label = document.createElement("label");
     label.htmlFor = `setting-${schema.id}`;
-    row.appendChild(label);
-
-    const labelText = document.createElement("span");
-    labelText.textContent = schema.label;
-    label.appendChild(labelText);
+    label.textContent = schema.label;
+    labelWrap.appendChild(label);
 
     if (schema.description) {
       const hint = document.createElement("span");
@@ -108,13 +113,12 @@ export class SettingsManager {
         if (!already) {
           this._tooltip.textContent = schema.description;
           this._tooltip.dataset.for = schema.id;
-          // Position below the hint badge using viewport coordinates (fixed)
           const r = hint.getBoundingClientRect();
-          this._tooltip.style.top  = (r.bottom + 6) + "px";
-          this._tooltip.style.right = (window.innerWidth - r.right - 4) + "px";
+          this._tooltip.style.top   = (r.bottom + 6) + "px";
+          this._tooltip.style.right  = (window.innerWidth - r.right - 4) + "px";
         }
       });
-      label.appendChild(hint);
+      labelWrap.appendChild(hint);
     }
 
     const input = document.createElement("input");
