@@ -2,7 +2,7 @@
 name = "knotty"
 version = "0.1.0"
 description = ""
-dependencies = ["fastapi>=0.135.1,<0.136", "uvicorn[standard]>=0.41.0,<0.42", "numpy>=2.4.3,<3"]
+dependencies = ["fastapi>=0.135.1,<0.136", "uvicorn[standard]>=0.41.0,<0.42", "numpy>=2.4.3,<3", "pytest>=9.0.2,<10"]
 
 [tool.pixi.workspace]
 channels = ["conda-forge"]
