@@ -54,15 +54,14 @@ def test_stiffness_zero_allows_stretch(default_sim):
 def test_stretch_limit_caps_extension(default_sim):
     solver, rope, settings = default_sim
     limit = 1.1
-    # Use more substeps so the hard limit converges better each frame
-    settings.patch({"stiffness": 0.0, "stretch_limit": limit, "substeps": 15})
+    settings.patch({"stiffness": 0.0, "stretch_limit": limit})
     rope.pin(0)
     rest = float(rope.rest_lengths[0])
     for _ in range(60):
         solver.step(1 / 60)
-    # Allow a small margin: PBD corrects per-substep so the final position may
-    # overshoot slightly before the next pass brings it back within the limit
-    tolerance = rest * 0.02
+    # Multiple constraint iterations per substep (see PhysicsSolver._CONSTRAINT_ITERS)
+    # keep overshoot negligible; allow 1% tolerance for floating-point residuals
+    tolerance = rest * 0.01
     for i in range(rope.num_nodes - 1):
         dist = float(np.linalg.norm(rope.positions[i + 1] - rope.positions[i]))
         assert dist <= rest * limit + tolerance, (

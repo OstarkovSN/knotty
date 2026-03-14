@@ -44,6 +44,18 @@ export class SettingsManager {
   }
 
   _buildPanel() {
+    // Shared tooltip element — repositioned on each hint click
+    this._tooltip = document.createElement("div");
+    this._tooltip.className = "settings-tooltip";
+    this._tooltip.hidden = true;
+    document.getElementById("settings-panel").appendChild(this._tooltip);
+
+    document.addEventListener("click", (e) => {
+      if (!e.target.classList.contains("settings-hint")) {
+        this._tooltip.hidden = true;
+      }
+    });
+
     const panel = document.getElementById("settings-panel");
     for (const group of SETTINGS_SCHEMA) {
       const groupEl = document.createElement("div");
@@ -88,7 +100,19 @@ export class SettingsManager {
       const hint = document.createElement("span");
       hint.className = "settings-hint";
       hint.textContent = "?";
-      hint.title = schema.description;
+      hint.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const already = !this._tooltip.hidden && this._tooltip.dataset.for === schema.id;
+        this._tooltip.hidden = already;
+        if (!already) {
+          this._tooltip.textContent = schema.description;
+          this._tooltip.dataset.for = schema.id;
+          // Position below the hint badge within the panel
+          const hintRect = hint.getBoundingClientRect();
+          const panelRect = document.getElementById("settings-panel").getBoundingClientRect();
+          this._tooltip.style.top = (hintRect.bottom - panelRect.top + 4) + "px";
+        }
+      });
       label.appendChild(hint);
     }
 

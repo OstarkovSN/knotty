@@ -26,6 +26,11 @@ class PhysicsSolver:
         self.settings = settings
         logger.info("PhysicsSolver ready")
 
+    # Number of constraint-solving passes per substep.
+    # Standard PBD needs multiple iterations to converge, especially with
+    # low stiffness or tight stretch limits on long chains.
+    _CONSTRAINT_ITERS = 3
+
     def step(self, dt: float) -> None:
         """Advance the simulation by *dt* seconds."""
         substeps = self.settings.substeps
@@ -33,7 +38,8 @@ class PhysicsSolver:
         gravity = np.array([0.0, self.settings.gravity_y, 0.0])
         for _ in range(substeps):
             self._integrate(sub_dt, gravity)
-            self._solve_constraints()
+            for _ in range(self._CONSTRAINT_ITERS):
+                self._solve_constraints()
 
     # ------------------------------------------------------------------
     # Internal helpers
