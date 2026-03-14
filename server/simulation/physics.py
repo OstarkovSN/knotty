@@ -4,8 +4,8 @@ import logging
 
 import numpy as np
 
-from server.config import PHYSICS as _PHYS_CFG
 from server.simulation.rope import Rope
+from server.simulation.settings import RuntimeSettings
 
 logger = logging.getLogger(__name__)
 
@@ -16,38 +16,35 @@ class PhysicsSolver:
     Each call to :meth:`step` runs several substeps for stability. Within each
     substep, distance constraints between adjacent nodes are projected to satisfy
     the rest-length requirement.
+
+    Physics parameters are read from *settings* on every step, so changes made
+    via the WebSocket take effect immediately.
     """
 
-    def __init__(
-        self,
-        rope: Rope,
-        substeps: int = _PHYS_CFG.substeps,
-        damping: float = _PHYS_CFG.damping,
-    ) -> None:
+    def __init__(self, rope: Rope, settings: RuntimeSettings) -> None:
         self.rope = rope
-        self.substeps = substeps
-        self.damping = damping
-        self._gravity = np.array(_PHYS_CFG.gravity)
-        logger.info("PhysicsSolver ready: %d substeps, damping=%.3f", substeps, damping)
+        self.settings = settings
+        logger.info("PhysicsSolver ready")
 
     def step(self, dt: float) -> None:
         """Advance the simulation by *dt* seconds."""
-        sub_dt = dt / self.substeps
-        for _ in range(self.substeps):
-            self._integrate(sub_dt)
+        substeps = self.settings.substeps
+        sub_dt = dt / substeps
+        gravity = np.array([0.0, self.settings.gravity_y, 0.0])
+        for _ in range(substeps):
+            self._integrate(sub_dt, gravity)
             self._solve_constraints()
 
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
 
-    def _integrate(self, dt: float) -> None:
+    def _integrate(self, dt: float, gravity: np.ndarray) -> None:
         """Verlet integration: estimate new positions from velocity + gravity."""
         rope = self.rope
-        velocity = (rope.positions - rope.prev_positions) * self.damping
-        new_positions = rope.positions + velocity + self._gravity * dt * dt
+        velocity = (rope.positions - rope.prev_positions) * self.settings.damping
+        new_positions = rope.positions + velocity + gravity * dt * dt
 
-        # Keep pinned nodes fixed
         for idx in rope.pinned:
             new_positions[idx] = rope.positions[idx]
 

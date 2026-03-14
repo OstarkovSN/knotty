@@ -1,6 +1,8 @@
 /**
  * Three.js rope renderer.
  * Maintains a TubeGeometry built from the node positions received from the server.
+ * Render parameters are read from the *renderSettings* object on every update,
+ * so changes made via the settings panel take effect immediately.
  */
 
 import * as THREE from "three";
@@ -9,9 +11,11 @@ import { RopeConfig } from "./config.js";
 export class RopeRenderer {
   /**
    * @param {THREE.Scene} scene
+   * @param {Object} renderSettings - mutable object with {ropeColor, tubeRadius}
    */
-  constructor(scene) {
+  constructor(scene, renderSettings) {
     this.scene = scene;
+    this.renderSettings = renderSettings;
     this.mesh = null;
   }
 
@@ -22,10 +26,10 @@ export class RopeRenderer {
   update(nodes) {
     if (nodes.length < 2) return;
 
-    // Remove old mesh
     if (this.mesh) {
       this.scene.remove(this.mesh);
       this.mesh.geometry.dispose();
+      this.mesh.material.dispose();
     }
 
     const points = nodes.map(([x, y, z]) => new THREE.Vector3(x, y, z));
@@ -34,12 +38,13 @@ export class RopeRenderer {
     const geometry = new THREE.TubeGeometry(
       curve,
       nodes.length * RopeConfig.curveSamplesPerNode,
-      RopeConfig.tubeRadius,
+      this.renderSettings.tubeRadius,
       RopeConfig.tubeRadialSegments,
       false
     );
 
-    const material = new THREE.MeshStandardMaterial({ color: RopeConfig.color });
+    const color = new THREE.Color(this.renderSettings.ropeColor);
+    const material = new THREE.MeshStandardMaterial({ color });
     this.mesh = new THREE.Mesh(geometry, material);
     this.scene.add(this.mesh);
   }

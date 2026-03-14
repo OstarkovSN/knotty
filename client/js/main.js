@@ -7,7 +7,9 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { RopeSocket } from "./ws.js";
 import { RopeRenderer } from "./rope.js";
 import { RopeInteraction } from "./interaction.js";
+import { SettingsManager } from "./settings.js";
 import { SceneConfig } from "./config.js";
+import { SETTINGS_SCHEMA } from "./settings_schema.js";
 
 // ------------------------------------------------------------------
 // Scene
@@ -45,6 +47,17 @@ window.addEventListener("resize", () => {
 });
 
 // ------------------------------------------------------------------
+// Render settings — mutable object read by RopeRenderer on each update
+// ------------------------------------------------------------------
+
+const renderSettings = Object.fromEntries(
+  SETTINGS_SCHEMA
+    .flatMap((g) => g.settings)
+    .filter((s) => s.target === "render")
+    .map((s) => [s.id, s.default])
+);
+
+// ------------------------------------------------------------------
 // Simulation state
 // ------------------------------------------------------------------
 
@@ -58,7 +71,7 @@ const socket = new RopeSocket(
   }
 );
 
-const ropeRenderer = new RopeRenderer(scene);
+const ropeRenderer = new RopeRenderer(scene, renderSettings);
 
 const interaction = new RopeInteraction(
   camera,
@@ -68,18 +81,26 @@ const interaction = new RopeInteraction(
 );
 
 // Disable orbit while dragging a node
-renderer.domElement.addEventListener("pointerdown", (e) => {
+renderer.domElement.addEventListener("pointerdown", () => {
   if (interaction.dragIndex !== null) controls.enabled = false;
 });
 renderer.domElement.addEventListener("pointerup", () => {
   controls.enabled = true;
 });
 
-socket.connect();
+// ------------------------------------------------------------------
+// Settings
+// ------------------------------------------------------------------
+
+const settingsManager = new SettingsManager(socket, (id, value) => {
+  renderSettings[id] = value;
+});
 
 // ------------------------------------------------------------------
 // Render loop
 // ------------------------------------------------------------------
+
+socket.connect();
 
 function animate() {
   requestAnimationFrame(animate);

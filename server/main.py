@@ -17,16 +17,9 @@ logger = logging.getLogger(__name__)
 app = FastAPI(title="Knotty")
 
 CLIENT_DIR = Path(__file__).parent.parent / "client"
-app.mount("/static", StaticFiles(directory=CLIENT_DIR, html=True), name="static")
-
-
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket) -> None:
     await handle_connection(websocket)
 
 
-@app.get("/")
-async def root():
-    """Redirect root to the static client."""
-    from fastapi.responses import FileResponse
-    return FileResponse(CLIENT_DIR / "index.html")
+app.mount("/", StaticFiles(directory=CLIENT_DIR, html=True), name="static")
