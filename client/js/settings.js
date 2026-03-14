@@ -77,9 +77,20 @@ export class SettingsManager {
     row.className = "settings-row";
 
     const label = document.createElement("label");
-    label.textContent = schema.label;
     label.htmlFor = `setting-${schema.id}`;
     row.appendChild(label);
+
+    const labelText = document.createElement("span");
+    labelText.textContent = schema.label;
+    label.appendChild(labelText);
+
+    if (schema.description) {
+      const hint = document.createElement("span");
+      hint.className = "settings-hint";
+      hint.textContent = "?";
+      hint.title = schema.description;
+      label.appendChild(hint);
+    }
 
     const input = document.createElement("input");
     input.id = `setting-${schema.id}`;

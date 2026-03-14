@@ -52,8 +52,17 @@ class PhysicsSolver:
         rope.positions = new_positions
 
     def _solve_constraints(self) -> None:
-        """Project distance constraints for each rope segment."""
+        """Project distance constraints for each rope segment.
+
+        Within the stretch limit, *stiffness* controls how much of the
+        constraint error is corrected per substep (1.0 = fully rigid).
+        Beyond the stretch limit the correction is applied in full regardless
+        of stiffness, acting as a hard cap on how far segments can extend.
+        """
         rope = self.rope
+        stiffness = self.settings.stiffness
+        stretch_limit = self.settings.stretch_limit
+
         for i in range(rope.num_nodes - 1):
             p1 = rope.positions[i]
             p2 = rope.positions[i + 1]
@@ -62,7 +71,13 @@ class PhysicsSolver:
             if dist < 1e-8:
                 continue
             rest = rope.rest_lengths[i]
-            correction = delta * ((dist - rest) / dist)
+
+            if dist > rest * stretch_limit:
+                # Hard limit: correct fully down to stretch_limit * rest
+                correction = delta * (1.0 - (rest * stretch_limit) / dist)
+            else:
+                # Soft constraint: apply stiffness fraction of the error
+                correction = delta * ((dist - rest) / dist) * stiffness
 
             pinned1 = i in rope.pinned
             pinned2 = (i + 1) in rope.pinned

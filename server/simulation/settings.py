@@ -18,6 +18,9 @@ class RuntimeSettings:
     gravity_y: float = _PHYS_CFG.gravity[1]
     damping: float = _PHYS_CFG.damping
     substeps: int = _PHYS_CFG.substeps
+    # Rope
+    stiffness: float = 1.0
+    stretch_limit: float = 1.5
 
     def patch(self, updates: dict) -> None:
         """Apply a {field: value} patch, coercing types and ignoring unknown keys."""

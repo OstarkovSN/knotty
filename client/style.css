@@ -122,3 +122,24 @@ canvas {
   min-width: 36px;
   text-align: right;
 }
+
+.settings-hint {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 4px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  color: #aaa;
+  font-size: 9px;
+  font-style: normal;
+  cursor: help;
+  vertical-align: middle;
+}
+
+.settings-hint:hover {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
